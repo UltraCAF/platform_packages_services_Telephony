@@ -1493,4 +1493,7 @@
     <!-- The error message to show if the server reported an error while attempting to change the voicemail PIN -->
     <string name="change_pin_system_error">Unable to set PIN</string>
 
+    <!-- Permission to modify network mode via intent -->
+    <string name="perm_change_mobile_network">Change network mode</string>
+    <string name="perm_change_mobile_network_desc">Allows an application to modify the current network mode.</string>
 </resources>
