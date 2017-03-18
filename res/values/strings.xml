@@ -1496,4 +1496,7 @@
     <!-- Permission to modify network mode via intent -->
     <string name="perm_change_mobile_network">Change network mode</string>
     <string name="perm_change_mobile_network_desc">Allows an application to modify the current network mode.</string>
+
+    <string name="ut_not_support">UT is not available</string>
+    <string name="ct_ut_not_support_close_4glte">UT is not available, please turn off Enhanced 4G LTE Mode in Settings</string>
 </resources>
