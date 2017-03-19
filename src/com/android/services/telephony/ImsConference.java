@@ -219,7 +219,6 @@ public class ImsConference extends Conference {
         @Override
         public void onConferenceMergeFailed(android.telecom.Connection c) {
             Log.v(this, "onConferenceMergeFailed connection = " + c);
-            updateMergeConferenceFailed();
         }
     };
 
