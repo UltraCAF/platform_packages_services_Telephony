@@ -37,8 +37,6 @@ import com.android.phone.PhoneGlobals;
 import com.android.phone.R;
 import com.android.phone.settings.TtyModeListPreference;
 
-import org.codeaurora.ims.utils.QtiImsExtUtils;
-
 import java.util.List;
 
 public class AccessibilitySettingsFragment extends PreferenceFragment {
@@ -101,14 +99,6 @@ public class AccessibilitySettingsFragment extends PreferenceFragment {
         } else {
             getPreferenceScreen().removePreference(mButtonHac);
             mButtonHac = null;
-        }
-        if (QtiImsExtUtils.isCarrierOneSupported()
-                  && QtiImsExtUtils.isCarrierOneCallSettingsAvailable(mContext)) {
-           if (mButtonTty != null) {
-               // TTY mode added in Call Settings.
-               getPreferenceScreen().removePreference(mButtonTty);
-               mButtonTty = null;
-           }
         }
     }
 

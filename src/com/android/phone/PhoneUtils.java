@@ -25,10 +25,10 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.CountDownTimer;
@@ -2577,26 +2577,6 @@ public class PhoneUtils {
         return result;
     }
 
-    /**
-     * check whether NetworkSetting apk exist in system, if yes, return true, else
-     * return false.
-     */
-    public static boolean isNetworkSettingsApkAvailable(Context context) {
-        // check whether the target handler exist in system
-        Intent intent = new Intent("org.codeaurora.settings.NETWORK_OPERATOR_SETTINGS_ASYNC");
-        PackageManager pm = context.getPackageManager();
-        List<ResolveInfo> list = pm.queryIntentActivities(intent, 0);
-        for (ResolveInfo resolveInfo : list) {
-            // check is it installed in system.img, exclude the application
-            // installed by user
-            if ((resolveInfo.activityInfo.applicationInfo.flags &
-                    ApplicationInfo.FLAG_SYSTEM) != 0) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public static int getPhoneIdForECall() {
         int phoneId = 0;
         try {
@@ -2625,5 +2605,22 @@ public class PhoneUtils {
                 mAlertDialog.dismiss();
             }
         }
+    }
+
+    public static ComponentName getDefaultDialerComponent(Context context) {
+        Resources resources = context.getResources();
+        PackageManager packageManager = context.getPackageManager();
+        Intent i = new Intent(Intent.ACTION_DIAL);
+        List<ResolveInfo> resolveInfo = packageManager.queryIntentActivities(i, 0);
+        List<String> entries = Arrays.asList(resources.getStringArray(
+                R.array.dialer_default_classes));
+        for (ResolveInfo info : resolveInfo) {
+            ComponentName componentName = new ComponentName(info.activityInfo.packageName,
+                    info.activityInfo.name);
+            if (entries.contains(componentName.flattenToString())) {
+                return componentName;
+            }
+        }
+        return null;
     }
 }

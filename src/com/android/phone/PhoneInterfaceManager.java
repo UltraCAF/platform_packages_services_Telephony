@@ -39,6 +39,7 @@ import android.os.ServiceManager;
 import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.os.UserManager;
+import android.os.SystemProperties;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.service.carrier.CarrierIdentifier;
@@ -153,6 +154,7 @@ public class PhoneInterfaceManager extends ITelephony.Stub {
     private static final int CMD_OPEN_CHANNEL_WITH_P2 = 49;
 
     private static final String PRIMARY_CARD_PROPERTY_NAME = "persist.radio.primarycard";
+    private static final int CMD_TOGGLE_LTE = 99; // not used yet
 
     /** The singleton instance. */
     private static PhoneInterfaceManager sInstance;
@@ -301,11 +303,6 @@ public class PhoneInterfaceManager extends ITelephony.Stub {
                     request = (MainThreadRequest) msg.obj;
                     int answer_subId = request.subId;
                     answerRingingCallInternal(answer_subId);
-                    request.result = ""; // dummy result for notifying the waiting thread
-                    // Wake up the requesting thread
-                    synchronized (request) {
-                        request.notifyAll();
-                    }
                     break;
 
                 case CMD_END_CALL:
@@ -1046,8 +1043,7 @@ public class PhoneInterfaceManager extends ITelephony.Stub {
 
     private UiccCard getUiccCardUsingSubId(int subId) {
         Phone phone = getPhone(subId);
-        return phone == null ? null :
-                UiccController.getInstance().getUiccCard(phone.getPhoneId());
+        return UiccController.getInstance().getUiccCard(phone.getPhoneId());
     }
 
     //
@@ -1447,6 +1443,61 @@ public class PhoneInterfaceManager extends ITelephony.Stub {
         toggleRadioOnOffForSubscriber(getDefaultSubscription());
 
     }
+
+  private int getPreferredNetworkMode() {
+        int preferredNetworkMode = RILConstants.PREFERRED_NETWORK_MODE;
+        if (mPhone.getLteOnCdmaMode() == PhoneConstants.LTE_ON_CDMA_TRUE) {
+            preferredNetworkMode = Phone.NT_MODE_GLOBAL;
+        }
+        int network = Settings.Global.getInt(mPhone.getContext().getContentResolver(),
+              Settings.Global.PREFERRED_NETWORK_MODE, preferredNetworkMode);
+        return network;
+    }
+public void toggleLTE(boolean on) {
+        int network = getPreferredNetworkMode();
+        boolean isCdmaDevice = mPhone.getLteOnCdmaMode() == PhoneConstants.LTE_ON_CDMA_TRUE;
+
+        switch (network) {
+        // GSM Devices
+        case Phone.NT_MODE_WCDMA_PREF:
+        case Phone.NT_MODE_GSM_UMTS:
+            network = Phone.NT_MODE_LTE_GSM_WCDMA;
+            break;
+        case Phone.NT_MODE_LTE_GSM_WCDMA:
+            network = Phone.NT_MODE_WCDMA_PREF;
+            break;
+        // GSM and CDMA devices
+        case Phone.NT_MODE_GLOBAL:
+            // Wtf to do here?
+            network = Phone.NT_MODE_LTE_CDMA_EVDO_GSM_WCDMA;
+            break;
+        case Phone.NT_MODE_LTE_CDMA_EVDO_GSM_WCDMA:
+            // Determine the correct network type
+            if (isCdmaDevice) {
+                network = Phone.NT_MODE_CDMA;
+            } else {
+                network = Phone.NT_MODE_WCDMA_PREF;
+            }
+            break;
+        // CDMA Devices
+        case Phone.NT_MODE_CDMA:
+            if (SystemProperties.getInt("ro.telephony.default_network", 0) ==
+                        RILConstants.NETWORK_MODE_LTE_CDMA_EVDO_GSM_WCDMA) {
+                network = Phone.NT_MODE_LTE_CDMA_EVDO_GSM_WCDMA;
+            } else {
+                network = Phone.NT_MODE_LTE_CDMA_AND_EVDO;
+            }
+            break;
+        case Phone.NT_MODE_LTE_CDMA_AND_EVDO:
+            network = Phone.NT_MODE_CDMA;
+            break;
+        }
+
+        mPhone.setPreferredNetworkType(network,
+                mMainThreadHandler.obtainMessage(CMD_TOGGLE_LTE));
+        android.provider.Settings.Global.putInt(mApp.getContentResolver(),
+                android.provider.Settings.Global.PREFERRED_NETWORK_MODE, network);
+	}
 
     public void toggleRadioOnOffForSubscriber(int subId) {
         enforceModifyPermission();

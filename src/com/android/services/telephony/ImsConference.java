@@ -215,11 +215,6 @@ public class ImsConference extends Conference {
             Log.v(this, "onExtrasRemoved: c=" + c + " key=" + keys);
             removeExtras(keys);
         }
-
-        @Override
-        public void onConferenceMergeFailed(android.telecom.Connection c) {
-            Log.v(this, "onConferenceMergeFailed connection = " + c);
-        }
     };
 
     /**
@@ -779,8 +774,7 @@ public class ImsConference extends Conference {
                         disableFilter = SubscriptionManager.getResourcesForSubId(context, subId)
                                      .getBoolean(R.bool.disable_filter_out_conference_host);
                     }
-                    if (!isParticipantHost(mConferenceHostAddress, participant.getHandle())
-                            ||disableFilter) {
+                    if (!isParticipantHost(mConferenceHostAddress, participant.getHandle())) {
                         createConferenceParticipantConnection(parent, participant);
                         newParticipants.add(participant);
                         newParticipantsAdded = true;

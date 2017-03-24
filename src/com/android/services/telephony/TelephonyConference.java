@@ -38,8 +38,7 @@ public class TelephonyConference extends Conference {
                 Connection.CAPABILITY_SUPPORT_HOLD |
                 Connection.CAPABILITY_HOLD |
                 Connection.CAPABILITY_MUTE |
-                Connection.CAPABILITY_MANAGE_CONFERENCE |
-                Connection.CAPABILITY_CANNOT_DOWNGRADE_VIDEO_TO_AUDIO);
+                Connection.CAPABILITY_MANAGE_CONFERENCE);
         setActive();
     }
 
